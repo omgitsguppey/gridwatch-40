@@ -374,25 +374,27 @@ app.get('/', (req, res) => {
           const renderReports = (items) => {
             reportList.innerHTML = '';
             if (!Array.isArray(items) || items.length === 0) {
-              reportList.innerHTML = '<div class="report-item"><span>No reports yet. Be the first to help your area.</span></div>';
+              const emptyItem = document.createElement('div');
+              emptyItem.className = 'report-item';
+              const emptyText = document.createElement('span');
+              emptyText.textContent = 'No reports yet. Be the first to help your area.';
+              emptyItem.appendChild(emptyText);
+              reportList.appendChild(emptyItem);
               return;
             }
             items.forEach((report) => {
               const wrapper = document.createElement('div');
               wrapper.className = 'report-item';
-              wrapper.innerHTML = [
-                '<h3>',
-                (OUTAGE_TYPE_LABELS_PLACEHOLDER[report.outageType] || 'Outage'),
-                ' in ',
-                report.zipCode,
-                '</h3>',
-                '<p>',
-                report.description,
-                '</p>',
-                '<span>',
-                formatDate(report.reportedAt),
-                '</span>',
-              ].join('');
+              const title = document.createElement('h3');
+              const label = OUTAGE_TYPE_LABELS_PLACEHOLDER[report.outageType] || 'Outage';
+              title.textContent = `${label} in ${report.zipCode}`;
+              const description = document.createElement('p');
+              description.textContent = report.description;
+              const timestamp = document.createElement('span');
+              timestamp.textContent = formatDate(report.reportedAt);
+              wrapper.appendChild(title);
+              wrapper.appendChild(description);
+              wrapper.appendChild(timestamp);
               reportList.appendChild(wrapper);
             });
           };
