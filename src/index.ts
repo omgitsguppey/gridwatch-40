@@ -165,10 +165,12 @@ const parseGeocodeResponse = (payload: unknown): GeocodeResult => {
   return { location: { lat, lng } };
 };
 
-const mapsApiKey =
-  normalizeMapsApiKey(process.env.MAPS_API_KEY) ||
+const mapsBrowserKey =
   normalizeMapsApiKey(process.env.MAPS_BROWSER_API_KEY) ||
-  normalizeMapsApiKey(process.env.MAPS_SERVER_API_KEY);
+  normalizeMapsApiKey(process.env.MAPS_API_KEY);
+const mapsServerKey =
+  normalizeMapsApiKey(process.env.MAPS_SERVER_API_KEY) ||
+  normalizeMapsApiKey(process.env.MAPS_API_KEY);
 
 app.get('/', (req, res) => {
   res.type('html').send(`<!doctype html>
@@ -508,7 +510,7 @@ app.get('/', (req, res) => {
             }
           };
 
-          const MAPS_API_KEY = ${JSON.stringify(mapsApiKey)};
+          const MAPS_API_KEY = ${JSON.stringify(mapsBrowserKey)};
           const DEFAULT_MAP_CENTER = ${JSON.stringify(DEFAULT_MAP_CENTER)};
           let mapInstance = null;
           let mapMarker = null;
@@ -558,7 +560,7 @@ app.get('/', (req, res) => {
 
           const updateMapForZip = async (zipCode) => {
             if (!MAPS_API_KEY) {
-              renderMapStatus('Map key missing. Add MAPS_API_KEY to enable the map.', 'error');
+              renderMapStatus('Map key missing. Add MAPS_BROWSER_API_KEY to enable the map.', 'error');
               return;
             }
 
@@ -580,7 +582,7 @@ app.get('/', (req, res) => {
 
           const initializeMap = async () => {
             if (!MAPS_API_KEY) {
-              renderMapStatus('Map key missing. Add MAPS_API_KEY to enable the map.', 'error');
+              renderMapStatus('Map key missing. Add MAPS_BROWSER_API_KEY to enable the map.', 'error');
               return;
             }
 
@@ -640,7 +642,7 @@ app.get('/api/reports', (req, res) => {
 });
 
 app.get('/api/geocode', async (req, res) => {
-  if (!mapsApiKey) {
+  if (!mapsServerKey) {
     res.status(500).json({ error: 'Maps API key is not configured.' });
     return;
   }
@@ -654,7 +656,7 @@ app.get('/api/geocode', async (req, res) => {
 
   const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
   url.searchParams.set('components', `postal_code:${zipCode}`);
-  url.searchParams.set('key', mapsApiKey);
+  url.searchParams.set('key', mapsServerKey);
 
   try {
     const response = await fetch(url.toString());
